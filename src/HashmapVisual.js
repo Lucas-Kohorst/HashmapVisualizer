@@ -1,0 +1,187 @@
+import React, { Component, Children } from "react";
+import "./App.css";
+
+import Grid from "@material-ui/core/Grid";
+import TextField from "@material-ui/core/TextField";
+import InputLabel from "@material-ui/core/InputLabel";
+import MenuItem from "@material-ui/core/MenuItem";
+import FormControl from "@material-ui/core/FormControl";
+import Select from "@material-ui/core/Select";
+import Button from "@material-ui/core/Button";
+
+import { FaBitbucket } from "react-icons/fa";
+
+import Tree from "react-d3-tree";
+
+var HashMap = require("hashmap");
+
+class HashmapVisual extends Component {
+  constructor(props) {
+    super(props);
+    var map = new HashMap();
+    this.state = {
+      type: "insert",
+      key: 1,
+      value: 1,
+      buckets: 16,
+      map: map,
+      equation: "1 % 16 = 1"
+    };
+  }
+
+  /**
+   * @see https://gist.github.com/hyamamoto/fd435505d29ebfa3d9716fd2be8d42f0
+   */
+  hashCode = function(s) {
+    var h = 0,
+      l = s.length,
+      i = 0;
+    if (l > 0) while (i < l) h = ((h << 5) - h + s.charCodeAt(i++)) | 0;
+    return h;
+  };
+
+  _typeChange(e) {
+    this.setState({ type: e.target.value });
+  }
+
+  _keyChange(e) {
+    this.setState({
+      key: e.target.value,
+      equation:
+        Math.abs(this.hashCode(e.target.value)) +
+        " % " +
+        this.state.buckets +
+        " = " +
+        (e.target.value % this.state.buckets)
+    });
+  }
+
+  _itemChange(e) {
+    this.setState({
+      value: e.target.value
+    });
+  }
+
+  _bucketChange(e) {
+    this.setState({
+      buckets: e.target.value,
+      equation:
+        Math.abs(this.hashCode(this.state.key)) +
+        " % " +
+        e.target.value +
+        " = " +
+        (this.state.key % e.target.value)
+    });
+  }
+
+  _handleClick() {
+    switch (this.state.type) {
+      case "insert":
+        var oldMap = this.state.map.set(this.state.key, this.state.value);
+        this.setState({
+          map: oldMap
+        });
+        break;
+      case "delete":
+        var oldMap = this.state.map.delete(this.state.key, this.state.value);
+        this.setState({
+          map: oldMap
+        });
+        break;
+      default:
+        break;
+    }
+  }
+
+  _iterateBuckets(i) {
+    var keys = []
+    this.state.map.forEach((value, key) => {
+      if (Math.abs(this.hashCode(key)) % this.state.buckets == i) {
+         keys.push(JSON.stringify({ key, value }));
+      }
+    });
+    return <p>{keys.join()}</p>;
+  }
+
+  createBuckets = buckets => {
+    let bucketsList = [];
+    for (var i = 0; i < buckets; i++) {
+      bucketsList.push(
+        <Grid item xs={1} key={i} className={"bucket"}>
+          <p>{i}</p>
+          <FaBitbucket size={"3em"} />
+          {this._iterateBuckets(i)}
+        </Grid>
+      );
+    }
+    return bucketsList;
+  };
+
+  render() {
+    return (
+      <div>
+        <h1>Hashmap Visualizer</h1>
+        <p>
+          A HashMap is a data structure that stores keys and values. In a
+          bucketed system a key value pair is placed into a bucket as denoted by
+          object.hashCode() % n
+        </p>
+        <Grid item xs={12}>
+          <FormControl className={"select-box"}>
+            <InputLabel htmlFor="age-simple">Type</InputLabel>
+            <Select
+              value={this.state.type}
+              onChange={this._typeChange.bind(this)}
+              inputProps={{
+                type: this.state.type,
+                id: "age-simple"
+              }}
+            >
+              <MenuItem value={"insert"}>Insert</MenuItem>
+              {/* <MenuItem value={"update"}>Update</MenuItem> */}
+              <MenuItem value={"delete"}>Delete</MenuItem>
+            </Select>
+          </FormControl>
+        </Grid>
+        <Grid container spacing={3}>
+          <Grid item xs={4}>
+            <TextField
+              id="standard-name"
+              label="Key"
+              value={this.state.key}
+              onChange={this._keyChange.bind(this)}
+              margin="normal"
+            />
+          </Grid>
+          <Grid item xs={4}>
+            <TextField
+              id="standard-name"
+              label="Value"
+              value={this.state.value}
+              onChange={this._itemChange.bind(this)}
+              margin="normal"
+            />
+          </Grid>
+          <Grid item xs={4}>
+            <TextField
+              id="standard-name"
+              label="Buckets"
+              value={this.state.buckets}
+              onChange={this._bucketChange.bind(this)}
+              margin="normal"
+            />
+          </Grid>
+        </Grid>
+        <h3>{this.state.equation}</h3>
+        <Button variant="contained" onClick={this._handleClick.bind(this)}>
+          {this.state.type}
+        </Button>
+        <Grid container className={"buckets"}>
+          {this.createBuckets(this.state.buckets)}
+        </Grid>
+      </div>
+    );
+  }
+}
+
+export { HashmapVisual };
