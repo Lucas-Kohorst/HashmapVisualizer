@@ -14,7 +14,7 @@
 importScripts("https://storage.googleapis.com/workbox-cdn/releases/4.3.1/workbox-sw.js");
 
 importScripts(
-  "/HashmapVisualizer/precache-manifest.71d6aba50d2820bc64065928d2fdfd85.js"
+  "/HashmapVisualizer/precache-manifest.03ecd56a957924edcfca37e27da33536.js"
 );
 
 self.addEventListener('message', (event) => {
