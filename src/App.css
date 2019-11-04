@@ -31,3 +31,7 @@
 .bucket {
     padding: 5em;
 }
+
+.MuiInputBase-input {
+    color: white;
+}

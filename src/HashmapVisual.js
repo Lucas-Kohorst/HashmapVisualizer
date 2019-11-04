@@ -11,20 +11,15 @@ import Button from "@material-ui/core/Button";
 
 import { FaBitbucket } from "react-icons/fa";
 
-import Tree from "react-d3-tree";
-
-var HashMap = require("hashmap");
-
 class HashmapVisual extends Component {
   constructor(props) {
     super(props);
-    var map = new HashMap();
     this.state = {
       type: "insert",
       key: 1,
       value: 1,
       buckets: 16,
-      map: map,
+      map: [],
       equation: "1 % 16 = 1"
     };
   }
@@ -32,11 +27,9 @@ class HashmapVisual extends Component {
   /**
    * @see https://gist.github.com/hyamamoto/fd435505d29ebfa3d9716fd2be8d42f0
    */
-  hashCode = function(s) {
-    var h = 0,
-      l = s.length,
-      i = 0;
-    if (l > 0) while (i < l) h = ((h << 5) - h + s.charCodeAt(i++)) | 0;
+  _hashCode(s) {
+    var h = ((2 * s) + 5);
+    console.log(h)
     return h;
   };
 
@@ -48,11 +41,11 @@ class HashmapVisual extends Component {
     this.setState({
       key: e.target.value,
       equation:
-        Math.abs(this.hashCode(e.target.value)) +
+        Math.abs(this._hashCode(e.target.value)) +
         " % " +
         this.state.buckets +
         " = " +
-        (e.target.value % this.state.buckets)
+        (Math.abs(this._hashCode(e.target.value)) % this.state.buckets)
     });
   }
 
@@ -66,24 +59,33 @@ class HashmapVisual extends Component {
     this.setState({
       buckets: e.target.value,
       equation:
-        Math.abs(this.hashCode(this.state.key)) +
+        this.state.key +
         " % " +
         e.target.value +
         " = " +
-        (this.state.key % e.target.value)
+        (Math.abs(this._hashCode(this.state.key)) % e.target.value)
     });
-  }
+}
 
   _handleClick() {
     switch (this.state.type) {
       case "insert":
-        var oldMap = this.state.map.set(this.state.key, this.state.value);
+        var oldMap = this.state.map;
+        oldMap.push({
+          key: this.state.key,
+          value: this.state.value
+        });
         this.setState({
           map: oldMap
         });
         break;
       case "delete":
-        var oldMap = this.state.map.delete(this.state.key, this.state.value);
+        var index = this.state.map
+          .map(function(e) {
+            return e.key;
+          })
+          .indexOf(this.state.key);
+        this.state.map.splice(index, 1);
         this.setState({
           map: oldMap
         });
@@ -93,11 +95,25 @@ class HashmapVisual extends Component {
     }
   }
 
-  _iterateBuckets(i) {
-    var keys = []
-    this.state.map.forEach((value, key) => {
-      if (Math.abs(this.hashCode(key)) % this.state.buckets == i) {
-         keys.push(JSON.stringify({ key, value }));
+  _iterateBuckets(index) {
+    var keys = [];
+    var map = this.state.map
+    var buckets = this.state.buckets
+    Object.keys(map).forEach(function(key) {
+      var value = map[key].value
+      var key = map[key].key
+
+      // Hashing
+      var s = key.toString()
+      console.log(s)
+      // Hashing
+      var h = ((2 * s) + 5)
+      h = Math.abs(h) % buckets;
+      console.log(h)
+      console.log(index)
+
+      if ((h) == index) {
+        keys.push(JSON.stringify({ key, value }));
       }
     });
     return <p>{keys.join()}</p>;
@@ -160,7 +176,8 @@ class HashmapVisual extends Component {
               value={this.state.value}
               onChange={this._itemChange.bind(this)}
               margin="normal"
-            />
+              underlineStyle={{ "border-color": "#000000" }}
+            ></TextField>
           </Grid>
           <Grid item xs={4}>
             <TextField
