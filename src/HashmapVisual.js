@@ -139,8 +139,8 @@ class HashmapVisual extends Component {
         <h1>Hashmap Visualizer</h1>
         <p>
           A HashMap is a data structure that stores keys and values. In a
-          bucketed system a key value pair is placed into a bucket as denoted by
-          object.hashCode() % n
+          bucketed separate chaining system a key value pair is placed into a bucket as denoted by
+          object.hashCode() % n where the hashcode is denoted by the equation (2(k) + 5). If there are multiple elements in a bucket the elements are put into a linked list with each new addition being the next node. 
         </p>
         <Grid item xs={12}>
           <FormControl className={"select-box"}>
